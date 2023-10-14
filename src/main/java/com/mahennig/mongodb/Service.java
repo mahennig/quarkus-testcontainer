@@ -1,15 +1,16 @@
-package com.mahennig.postgres;
+package com.mahennig.mongodb;
 
 import com.mahennig.common.UserRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+
 import java.util.List;
 
 @ApplicationScoped
 public class Service {
 
-    public User getUser(String id){
-       return User.findById(id);
+    public User getUser(String id) {
+        return User.findById(id);
     }
 
     public List<User> getAll() {

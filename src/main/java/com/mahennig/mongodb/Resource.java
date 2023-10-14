@@ -1,14 +1,13 @@
-package com.mahennig.postgres;
+package com.mahennig.mongodb;
 
 import com.mahennig.common.UserRequest;
-import com.mahennig.mongodb.Service;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 
-@Path("/postgres/users")
+@Path("/mongodb/users")
 @Produces(MediaType.APPLICATION_JSON)
 public class Resource {
 

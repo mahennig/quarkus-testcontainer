@@ -33,5 +33,4 @@ public class PostgresTest {
                 .body("size()", greaterThan(0)); // Ensure there ar
     }
 
-
 }

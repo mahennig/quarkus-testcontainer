@@ -5,37 +5,43 @@ plugins {
 
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
 dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-arc'
-    implementation 'io.quarkus:quarkus-resteasy-reactive'
-    implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
-    implementation("io.quarkus:quarkus-hibernate-orm-panache")
-    implementation("io.quarkus:quarkus-mongodb-panache")
-    implementation("io.quarkus:quarkus-jdbc-postgresql")
-    implementation("io.quarkus:quarkus-flyway")
+    implementation 'io.quarkus:quarkus-rest'
+    implementation 'io.quarkus:quarkus-rest-jackson'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-mongodb-panache'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-flyway'
+    implementation 'org.flywaydb:flyway-database-postgresql'
 
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation("org.testcontainers:postgresql")
-    testImplementation("org.testcontainers:mongodb")
-    testImplementation 'io.quarkus:quarkus-junit5'
+    // Testcontainers versions are managed by the Quarkus BOM (Testcontainers 2.x)
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+    testImplementation 'org.testcontainers:testcontainers-mongodb'
+    testImplementation 'io.quarkus:quarkus-junit'
     testImplementation 'io.rest-assured:rest-assured'
 }
 
-group 'com.mahennig'
-version '1.0.0-SNAPSHOT'
+group = 'com.mahennig'
+version = '1.0.0-SNAPSHOT'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 test {
-    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    systemProperty 'java.util.logging.manager', 'org.jboss.logmanager.LogManager'
+    // Deterministic time zone for tests. Some JDK builds map the host zone to legacy IDs
+    // (e.g. "Europe/Kiev") that current PostgreSQL images reject on connect.
+    systemProperty 'user.timezone', 'UTC'
 }
+
 compileJava {
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'

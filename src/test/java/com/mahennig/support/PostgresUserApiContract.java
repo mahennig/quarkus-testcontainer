@@ -1,12 +1,9 @@
-package com.mahennig.postgres;
+package com.mahennig.support;
 
-import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -16,19 +13,16 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * Runs against the PostgreSQL container that Quarkus Dev Services starts, because no JDBC URL
- * is configured for the test profile.
+ * Behaviour of {@code /postgres/users} that must hold no matter how the database is provided.
+ * Each testing pattern extends this class and only differs in how PostgreSQL is started.
  */
-@QuarkusTest
-public class PostgresTest {
+public abstract class PostgresUserApiContract {
 
-    @Test
-    public void createdUserCanBeReadBack() {
-        String email = "pg-" + UUID.randomUUID() + "@example.com";
-
+    /** Creates a user through the API and returns its id. */
+    protected long createUser(String name, String email) {
         ExtractableResponse<Response> created = given()
                 .contentType(ContentType.JSON)
-                .body("{\"name\":\"Alice\",\"email\":\"" + email + "\"}")
+                .body(TestUsers.json(name, email))
                 .when().post("/postgres/users")
                 .then()
                 .statusCode(201)
@@ -36,6 +30,13 @@ public class PostgresTest {
                 .extract();
         long id = created.jsonPath().getLong("id");
         assertThat(created.header("Location"), endsWith("/postgres/users/" + id));
+        return id;
+    }
+
+    @Test
+    void createdUserCanBeReadBack() {
+        String email = TestUsers.uniqueEmail("pg");
+        long id = createUser("Alice", email);
 
         given()
                 .when().get("/postgres/users/{id}", id)
@@ -46,20 +47,30 @@ public class PostgresTest {
     }
 
     @Test
-    public void duplicateEmailIsRejected() {
-        String body = "{\"name\":\"Bob\",\"email\":\"pg-dup-" + UUID.randomUUID() + "@example.com\"}";
+    void duplicateEmailIsRejected() {
+        String email = TestUsers.uniqueEmail("pg-dup");
+        createUser("Bob", email);
 
-        given().contentType(ContentType.JSON).body(body)
+        given()
+                .contentType(ContentType.JSON)
+                .body(TestUsers.json("Bob again", email))
                 .when().post("/postgres/users")
-                .then().statusCode(201);
-
-        given().contentType(ContentType.JSON).body(body)
-                .when().post("/postgres/users")
-                .then().statusCode(409);
+                .then()
+                .statusCode(409);
     }
 
     @Test
-    public void unknownIdReturns404() {
+    void missingFieldsAreRejected() {
+        given()
+                .contentType(ContentType.JSON)
+                .body("{\"name\":\"No Email\"}")
+                .when().post("/postgres/users")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void unknownIdReturns404() {
         given()
                 .when().get("/postgres/users/{id}", Long.MAX_VALUE)
                 .then()
@@ -67,7 +78,7 @@ public class PostgresTest {
     }
 
     @Test
-    public void seedDataIsLoadedInTestProfile() {
+    void seedDataIsLoadedInTestProfile() {
         given()
                 .when().get("/postgres/users")
                 .then()

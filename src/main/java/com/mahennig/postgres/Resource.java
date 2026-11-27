@@ -1,7 +1,6 @@
 package com.mahennig.postgres;
 
 import com.mahennig.common.UserRequest;
-import com.mahennig.mongodb.Service;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;

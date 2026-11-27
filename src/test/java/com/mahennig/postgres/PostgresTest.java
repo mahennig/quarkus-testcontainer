@@ -11,7 +11,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
-@Disabled("Pre-existing failure: the resource is wired to the MongoDB service and the container is never connected to Quarkus")
+@Disabled("Pre-existing failure: the entity maps to table \"users\" but Flyway creates \"user\"; the container is never connected to Quarkus")
 public class PostgresTest {
 
     @Container

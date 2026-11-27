@@ -3,29 +3,31 @@ package com.mahennig.postgres;
 import com.mahennig.common.UserRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class Service {
 
-    public User getUser(String id){
-       return User.findById(id);
+    public Optional<User> getUser(Long id) {
+        return User.findByIdOptional(id);
     }
 
     public List<User> getAll() {
         return User.listAll();
     }
 
+    /**
+     * Flushes inside the transaction so that a duplicate email surfaces here as a
+     * Hibernate ConstraintViolationException rather than at commit time.
+     */
     @Transactional
-    public void create(UserRequest request) {
-        User user = map(request);
-        user.persist();
-    }
-
-    private User map(UserRequest request) {
+    public User create(UserRequest request) {
         User user = new User();
-        user.email = request.email;
         user.name = request.name;
+        user.email = request.email;
+        user.persistAndFlush();
         return user;
     }
 }
